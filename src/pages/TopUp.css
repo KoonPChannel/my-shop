@@ -1,0 +1,154 @@
+.topup {
+  padding: 120px 24px 80px;
+  min-height: 60vh;
+}
+
+.topup .container {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Input row */
+.topup-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.link-input-group {
+  flex: 1;
+  max-width: 600px;
+  text-align: left;
+}
+
+.link-input-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.link-input-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+.link-input-group input:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+}
+
+.red-envelope-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gradient-main);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.red-envelope-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.check-button-wrapper {
+  margin-top: 16px;
+}
+
+.btn-check {
+  padding: 12px 28px;
+  background: var(--gradient-hot);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.btn-check:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Popup */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 32px 48px;
+  text-align: center;
+  max-width: 420px;
+}
+
+.popup-box p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.popup-box button {
+  padding: 8px 24px;
+  background: var(--gradient-main);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.popup-overlay.success .popup-box {
+  border-color: var(--neon-green);
+}
+
+.popup-overlay.error .popup-box {
+  border-color: #ef4444;
+}
+
+/* Simulate button */
+.btn-simulate {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-simulate:hover {
+  color: var(--text-primary);
+  border-color: var(--neon-blue);
+}
+
+.envelope-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}

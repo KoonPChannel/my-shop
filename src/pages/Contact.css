@@ -1,0 +1,20 @@
+.contact {
+  padding: 120px 24px 80px;
+  min-height: 60vh;
+}
+
+.contact .container {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.contact-list {
+  list-style: none;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
