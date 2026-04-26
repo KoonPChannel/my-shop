@@ -47,7 +47,7 @@ function Login() {
         {/* Social buttons */}
         <div className="social-section">
           <p className="social-text">หรือเข้าสู่ระบบด้วย</p>
-          <button type="button" onClick={() => window.location.href='http://localhost:4000/auth/discord'} className="social-btn discord">
+          <button type="button" onClick={() => window.location.href='https://my-shop-zeta-five.vercel.app/auth/discord'} className="social-btn discord">
             <img src="/logo/discord-logo.png" alt="Discord" className="social-logo" />
             <span>Discord</span>
           </button>
