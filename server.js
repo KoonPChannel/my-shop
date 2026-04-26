@@ -34,6 +34,11 @@ const db = new Low(adapter, defaultData);
 
 await db.read();
 if (!db.data) db.data = defaultData;
+// Ensure all required arrays exist
+if (!db.data.users) db.data.users = [];
+if (!db.data.products) db.data.products = [];
+if (!db.data.topups) db.data.topups = [];
+if (!db.data.orders) db.data.orders = [];
 await db.write();
 
 // Helper: generate next ID
@@ -331,6 +336,33 @@ app.delete('/orders/:id', authMiddleware, async (req, res) => {
   await db.write();
   res.status(204).end();
 });
+
+import adminAuth from './server/adminAuth.js';
+import adminProducts from './server/adminProducts.js';
+import { requireAdmin } from './server/middleware/requireAdmin.js';
+import fs from 'fs';
+
+// ---------- Public Product API ----------
+app.get('/products', async (req, res) => {
+  await db.read();
+  res.json(db.data.products || []);
+});
+
+app.get('/products/:id', async (req, res) => {
+  await db.read();
+  const product = (db.data.products || []).find(p => p.id === req.params.id);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+  res.json(product);
+});
+
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
+// Admin routes
+app.use('/admin/auth', adminAuth);
+app.use('/admin', requireAdmin, adminProducts);
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 4000;

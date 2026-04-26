@@ -24,19 +24,41 @@
   color: var(--text-secondary);
   background: var(--bg-card);
   border: 1px solid var(--border-glass);
-  transition: all 0.3s;
+  transition: all 0.3s var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Morphing background on hover */
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--liquid-gradient);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth);
+  z-index: -1;
+}
+
+.filter-btn:hover::before {
+  opacity: 0.15;
+  animation: liquid-shift 3s ease-in-out infinite;
 }
 
 .filter-btn:hover {
   color: var(--text-primary);
   border-color: var(--neon-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
 }
 
 .filter-btn.active {
   background: var(--gradient-main);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5), 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .items-grid {
@@ -50,14 +72,55 @@
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: all 0.4s ease;
+  transition: all 0.4s var(--ease-smooth);
   cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* Deep glassmorphism layer */
+.item-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth);
+}
+
+/* Aurora accent border */
+.item-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  padding: 2px;
+  background: var(--liquid-gradient);
+  background-size: 300% 100%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-smooth);
+  animation: liquid-shift 5s ease-in-out infinite;
+}
+
+.item-card:hover::before {
+  opacity: 1;
+}
+
+.item-card:hover::after {
+  opacity: 1;
 }
 
 .item-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) translateZ(10px);
   border-color: rgba(0,212,255,0.3);
-  box-shadow: var(--shadow-neon);
+  box-shadow: var(--shadow-neon), 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .item-image {
@@ -70,14 +133,54 @@
   overflow: hidden;
 }
 
+.item-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  min-height: 180px;
+  background: rgba(255,255,255,0.02);
+  position: relative;
+}
+
+.item-img {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(0,212,255,0.3));
+  transition: all 0.4s var(--ease-smooth);
+}
+
 .item-emoji {
   font-size: 80px;
   filter: drop-shadow(0 0 20px rgba(0,212,255,0.3));
-  transition: transform 0.4s;
+  transition: all 0.4s var(--ease-smooth);
+  position: relative;
+  z-index: 1;
+}
+
+.item-emoji::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth);
+}
+
+.item-card:hover .item-img {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.5));
 }
 
 .item-card:hover .item-emoji {
-  transform: scale(1.15) rotate(-5deg);
+  transform: scale(1.15) rotate(-5deg) translateZ(20px);
+  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.5));
+}
+
+.item-card:hover .item-emoji::after {
+  opacity: 1;
 }
 
 .item-tag {
@@ -139,6 +242,7 @@
   text-decoration: line-through;
 }
 
+/* Add-to-cart button with ripple effect */
 .btn-cart {
   width: 100%;
   padding: 12px;
@@ -148,13 +252,35 @@
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: all 0.3s var(--ease-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple animation */
+.btn-cart::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease-out, height 0.6s ease-out;
+}
+
+.btn-cart:active::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-cart:hover {
   background: var(--gradient-main);
   border-color: transparent;
-  box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5), 0 4px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
 @media (max-width: 1024px) {

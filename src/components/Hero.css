@@ -3,6 +3,40 @@
   padding: 120px 24px 80px;
   text-align: center;
   overflow: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  transform: translateX(var(--mouse-x, 0px)) translateY(var(--mouse-y, 0px));
+}
+
+/* Multi-layer aurora background */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 30%, rgba(0, 212, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 70% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 60%);
+  animation: aurora-flow 20s linear infinite;
+  pointer-events: none;
+}
+
+/* Liquid wave overlay */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 150%;
+  height: 150px;
+  background: var(--liquid-gradient);
+  opacity: 0.08;
+  filter: blur(80px);
+  transform: translateX(-50%);
+  animation: liquid-shift 10s ease-in-out infinite;
 }
 
 .hero-bg {
@@ -25,7 +59,8 @@
   background: var(--neon-blue);
   top: -100px;
   left: -100px;
-  animation: float 8s ease-in-out infinite;
+  animation: float 8s ease-in-out infinite, aurora-flow 20s linear infinite;
+  box-shadow: 0 0 100px rgba(0, 212, 255, 0.4);
 }
 
 .hero-orb-2 {
@@ -34,7 +69,8 @@
   background: var(--neon-purple);
   top: 50px;
   right: -50px;
-  animation: float 10s ease-in-out infinite reverse;
+  animation: float 10s ease-in-out infinite reverse, aurora-flow 15s linear infinite reverse;
+  box-shadow: 0 0 100px rgba(168, 85, 247, 0.4);
 }
 
 .hero-orb-3 {
@@ -43,12 +79,46 @@
   background: var(--neon-pink);
   bottom: -100px;
   left: 30%;
-  animation: float 12s ease-in-out infinite;
+  animation: float 12s ease-in-out infinite, aurora-flow 18s linear infinite;
+  box-shadow: 0 0 100px rgba(236, 72, 153, 0.4);
+}
+
+/* Parallax layers for depth */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  transform-style: preserve-3d;
+}
+
+.hero-orb::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: inherit;
+  filter: blur(40px);
+  opacity: 0.5;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-30px) scale(1.05); }
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.05);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
 }
 
 .hero .container {

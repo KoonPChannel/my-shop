@@ -1,3 +1,7 @@
+/* =========================================
+   Header Styles - Dropdown Fixed
+   ========================================= */
+
 .header {
   position: sticky;
   top: 0;
@@ -6,6 +10,7 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-glass);
+  overflow: visible;
 }
 
 .header .container {
@@ -16,9 +21,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: visible;
 }
 
+/* ---------- Logo ---------- */
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+  transition: filter 0.3s var(--ease-smooth);
+}
+
+.logo-text {
   font-size: 28px;
   font-weight: 800;
   background: var(--gradient-main);
@@ -26,62 +52,81 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -1px;
-  user-select: none;
+  transition: filter 0.3s var(--ease-smooth);
 }
 
+.logo:hover .logo-img {
+  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+}
+
+.logo:hover .logo-text {
+  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+}
+
+/* ---------- Navigation ---------- */
 .nav {
   display: flex;
   gap: 32px;
+  align-items: center;
+  overflow: visible;
 }
 
-.nav a, .nav .active {
+.nav a {
   font-size: 16px;
   font-weight: 500;
   color: var(--text-secondary);
-  transition: color 0.3s, background 0.3s;
+  text-decoration: none;
+  transition: color 0.3s var(--ease-smooth);
   position: relative;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
 }
 
-.nav a:hover, .nav .active {
+.nav a:hover {
   color: var(--text-primary);
-  background: rgba(0,212,255,0.1);
+  background: rgba(0, 212, 255, 0.08);
 }
 
-.nav a::after, .nav .active::after {
+.nav a.active {
+  color: var(--text-primary);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.nav a.active::after {
   content: '';
   position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--gradient-main);
-  border-radius: 1px;
-  transition: width 0.3s;
+  bottom: 2px;
+  left: 50%;
+  width: 80%;
+  height: 3px;
+  background: var(--liquid-gradient);
+  background-size: 200% 100%;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  animation: liquid-shift 4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
-.nav a:hover::after, .nav .active::after {
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  .nav {
-    gap: 16px;
-  }
-  .nav a {
-    font-size: 14px;
-  }
-  .logo {
-    font-size: 22px;
-  }
-}
-
-/* ---------- Auth dropdown ---------- */
-.auth-dropdown {
+/* ---------- Dropdown ---------- */
+.dropdown-wrapper {
   position: relative;
+  display: inline-block;
+  z-index: 120;
 }
-.auth-btn {
+
+/* Bridge to prevent gap */
+.dropdown-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: transparent;
+  z-index: 119;
+}
+
+.dropdown-trigger {
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -90,55 +135,93 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  transition: background 0.3s;
+  transition: background 0.3s var(--ease-smooth);
 }
-.auth-btn:hover {
+
+.dropdown-trigger:hover {
   background: rgba(0, 212, 255, 0.1);
+  color: var(--text-primary);
 }
-.dropdown-content {
+
+.dropdown-menu {
   display: none;
   position: absolute;
   right: 0;
   top: 100%;
+  margin-top: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
   min-width: 150px;
   box-shadow: var(--shadow-neon);
-  z-index: 200;
+  z-index: 130;   /* above pink border (find its z-index), below header */
+  animation: fadeIn 0.2s ease-out forwards;
 }
-.auth-dropdown:hover .dropdown-content {
+
+.dropdown-wrapper:hover .dropdown-menu,
+.dropdown-menu:hover {
   display: block;
 }
-.dropdown-item {
+
+.dropdown-link {
   display: block;
   padding: 10px 16px;
   color: var(--text-primary);
   font-size: 14px;
   text-decoration: none;
-}
-.dropdown-item:hover {
-  background: var(--bg-secondary);
+  transition: background 0.3s var(--ease-smooth);
+  white-space: nowrap;
 }
 
-/* ---------- User info & logout ---------- */
+.dropdown-link:hover {
+  background: var(--bg-secondary);
+  color: var(--neon-blue);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- User info ---------- */
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .user-info {
   color: var(--neon-blue);
-  margin-left: 20px;
   font-weight: 600;
+  font-size: 14px;
 }
+
 .logout-btn {
   background: var(--gradient-hot);
   color: #fff;
   border: none;
   padding: 6px 12px;
-  margin-left: 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
   transition: opacity 0.3s;
 }
+
 .logout-btn:hover {
   opacity: 0.9;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .nav {
+    gap: 16px;
+  }
+  .nav a {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+  .logo {
+    font-size: 22px;
+  }
 }

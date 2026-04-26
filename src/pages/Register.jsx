@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Register.css';
 
@@ -48,16 +48,14 @@ function Register() {
         {/* Social buttons */}
         <div className="social-section">
           <p className="social-text">หรือสมัครด้วย</p>
-          <button onClick={() => window.location.href='http://localhost:4000/auth/google'} className="social-btn google">
-            <span className="social-icon">🟢</span> Google
-          </button>
-          <button onClick={() => window.location.href='http://localhost:4000/auth/discord'} className="social-btn discord">
-            <span className="social-icon">🟣</span> Discord
+          <button type="button" onClick={() => window.location.href='http://localhost:4000/auth/discord'} className="social-btn discord">
+            <img src="/logo/discord-logo.png" alt="Discord" className="social-logo" />
+            <span>Discord</span>
           </button>
         </div>
 
         <p className="switch-link">
-          มีบัญชีแล้ว? <a href="/login">เข้าสู่ระบบ</a>
+          มีบัญชีแล้ว? <Link to="/login">เข้าสู่ระบบ</Link>
         </p>
       </div>
     </section>

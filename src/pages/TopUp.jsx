@@ -71,12 +71,12 @@ function TopUp() {
     <section className="topup" id="topup">
       <div className="container">
         <h2 className="section-title">เติมเงิน</h2>
-        <p className="section-subtitle">วางลิงก์อั่งเปา TrueMoney แล้วกดตรวจสอบเงินเข้า</p>
+        <p className="section-subtitle">วางลิงก์จาก TrueMoney แล้วกดตรวจสอบเงินเข้า</p>
 
         {/* Input row */}
         <div className="topup-input-row">
           <div className="link-input-group">
-            <label htmlFor="truemoney-link">ลิงก์อั่งเปา TrueMoney</label>
+            <label htmlFor="truemoney-link">ลิงก์อั่งเป้า TrueMoney</label>
             <input
               id="truemoney-link"
               type="text"
@@ -85,30 +85,28 @@ function TopUp() {
               onChange={e => setLink(e.target.value)}
             />
           </div>
-          <a
-            href={link || undefined}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
             className="red-envelope-btn"
             onClick={() => {
               if (link) {
+                window.open(link, '_blank', 'noopener,noreferrer');
                 setTimeout(() => startPolling(), 3000);
               }
             }}
           >
             <span className="envelope-icon">🧧</span>
-            <span>เปิดลิงก์</span>
-          </a>
+            <span>เติมเงิน</span>
+          </button>
         </div>
 
-        {/* Check button below input */}
+        {/* Confirm button below input */}
         <div className="check-button-wrapper">
           <button
             className="btn-check"
             onClick={startPolling}
             disabled={checking || !token}
           >
-            {checking ? '⏳ กำลังตรวจสอบเครดิต...' : '🔍 ตรวจสอบเงินเข้า'}
+            {checking ? '⏳ กำลังตรวจสอบเครดิต...' : '✅ ยืนยันการเติมเงิน'}
           </button>
         </div>
 

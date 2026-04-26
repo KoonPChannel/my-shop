@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
@@ -13,9 +13,9 @@ function Login() {
     const token = searchParams.get('token');
     if (token) {
       localStorage.setItem('token', token);
-      window.location.href = '/';
+      navigate('/');
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,16 +47,14 @@ function Login() {
         {/* Social buttons */}
         <div className="social-section">
           <p className="social-text">หรือเข้าสู่ระบบด้วย</p>
-          <button onClick={() => window.location.href='http://localhost:4000/auth/google'} className="social-btn google">
-            <span className="social-icon">🟢</span> Google
-          </button>
-          <button onClick={() => window.location.href='http://localhost:4000/auth/discord'} className="social-btn discord">
-            <span className="social-icon">🟣</span> Discord
+          <button type="button" onClick={() => window.location.href='http://localhost:4000/auth/discord'} className="social-btn discord">
+            <img src="/logo/discord-logo.png" alt="Discord" className="social-logo" />
+            <span>Discord</span>
           </button>
         </div>
 
         <p className="switch-link">
-          ยังไม่มีบัญชี? <a href="/register">สมัครสมาชิก</a>
+          ยังไม่มีบัญชี? <Link to="/register">สมัครสมาชิก</Link>
         </p>
       </div>
     </section>

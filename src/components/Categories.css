@@ -55,14 +55,49 @@
   padding: 40px 32px;
   text-align: center;
   overflow: hidden;
-  transition: all 0.4s ease;
+  transition: all 0.4s var(--ease-smooth);
   cursor: pointer;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Holographic gradient overlay */
+.category-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-holographic);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-smooth);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: gradient-rotate 10s linear infinite;
+}
+
+/* Aurora glow layer */
+.category-card::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-smooth);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.category-card:hover::before {
+  opacity: 0.15;
+}
+
+.category-card:hover::after {
+  opacity: 1;
 }
 
 .category-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) rotateX(5deg);
   border-color: var(--accent);
-  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 20%, transparent), 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .category-glow {

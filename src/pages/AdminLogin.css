@@ -1,0 +1,25 @@
+.admin-login {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-login .container {
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  max-width: 400px;
+  width: 100%;
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-neon);
+}
+
+.admin-login .section-title {
+  text-align: center;
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+}

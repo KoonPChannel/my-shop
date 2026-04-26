@@ -4,29 +4,84 @@
   box-sizing: border-box;
 }
 
+/* Digital Aurora Theme - Advanced CSS Properties */
+@property --aurora-hue {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --glow-intensity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0.5;
+}
+
+@property --liquid-offset {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
 :root {
+  /* Base Colors */
   --bg-primary: #0a0a1a;
   --bg-secondary: #0f0f2a;
   --bg-card: rgba(15, 15, 42, 0.8);
   --bg-glass: rgba(255, 255, 255, 0.03);
   --border-glass: rgba(255, 255, 255, 0.08);
+
+  /* Neon Accent Colors */
   --neon-blue: #00d4ff;
   --neon-purple: #a855f7;
   --neon-pink: #ec4899;
   --neon-green: #22c55e;
+
+  /* Text Colors */
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
+
+  /* Aurora Gradients */
+  --aurora-1: conic-gradient(from 0deg, #00d4ff, #a855f7, #ec4899, #00d4ff);
+  --aurora-2: radial-gradient(ellipse 80% 50% at 20% 40%, rgba(168, 85, 247, 0.3), transparent 60%);
+  --aurora-3: radial-gradient(ellipse 60% 40% at 80% 60%, rgba(0, 212, 255, 0.3), transparent 60%);
+
+  /* Liquid Gradient */
+  --liquid-gradient: linear-gradient(135deg,
+    #00d4ff 0%,
+    #a855f7 25%,
+    #ec4899 50%,
+    #a855f7 75%,
+    #00d4ff 100%);
+
+  /* Standard Gradients */
   --gradient-main: linear-gradient(135deg, #00d4ff, #a855f7);
   --gradient-hot: linear-gradient(135deg, #ec4899, #f97316);
   --gradient-cool: linear-gradient(135deg, #00d4ff, #22c55e);
+
+  /* Holographic gradient */
+  --gradient-holographic: conic-gradient(from var(--aurora-hue),
+    #00d4ff, #a855f7, #ec4899, #00d4ff, #22c55e, #00d4ff);
+
+  /* Shadows */
   --shadow-neon: 0 0 20px rgba(0, 212, 255, 0.15);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 40px rgba(168, 85, 247, 0.3);
+
+  /* Typography */
   --font-main: 'Kanit', system-ui, -apple-system, sans-serif;
+
+  /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 28px;
+
+  /* Animation timing */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 html {
@@ -43,6 +98,66 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Aurora Flow Background Animation */
+@keyframes aurora-flow {
+  0% {
+    --aurora-hue: 0deg;
+  }
+  50% {
+    --aurora-hue: 180deg;
+  }
+  100% {
+    --aurora-hue: 360deg;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    --glow-intensity: 0.5;
+  }
+  50% {
+    --glow-intensity: 0.8;
+  }
+}
+
+@keyframes liquid-shift {
+  0% {
+    --liquid-offset: 0%;
+  }
+  50% {
+    --liquid-offset: 100%;
+  }
+  100% {
+    --liquid-offset: 0%;
+  }
+}
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-5px);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translateY(-30px) translateX(8px);
+  }
+}
+
+@keyframes gradient-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -56,6 +171,24 @@ body::before {
     radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.03) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+  animation: aurora-flow 20s linear infinite;
+}
+
+/* Ambient Particle Layer */
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(0, 212, 255, 0.03) 0%, transparent 15%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 15%),
+    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.02) 0%, transparent 20%);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-flow 30s linear infinite reverse;
 }
 
 #root {
@@ -83,19 +216,31 @@ img {
   display: block;
 }
 
+/* Custom Aurora Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--neon-purple);
-  border-radius: 4px;
+  background: linear-gradient(180deg, var(--neon-blue), var(--neon-purple), var(--neon-pink));
+  border-radius: 10px;
+  border: 2px solid var(--bg-primary);
+  transition: all 0.3s var(--ease-smooth);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neon-blue);
+  background: linear-gradient(180deg, var(--neon-purple), var(--neon-pink), var(--neon-blue));
+  transform: scale(1.1);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neon-purple) var(--bg-primary);
 }

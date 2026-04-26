@@ -1,13 +1,31 @@
 import './Hero.css';
+import { useEffect, useRef } from 'react';
 
 function Hero() {
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const handleMouseMove = (e) => {
+      const rect = hero.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const deltaX = (e.clientX - centerX) / 50;
+      const deltaY = (e.clientY - centerY) / 50;
+
+      hero.style.setProperty('--mouse-x', `${deltaX}px`);
+      hero.style.setProperty('--mouse-y', `${deltaY}px`);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <section className="hero">
-      <div className="hero-bg">
-        <div className="hero-orb hero-orb-1"></div>
-        <div className="hero-orb hero-orb-2"></div>
-        <div className="hero-orb hero-orb-3"></div>
-      </div>
+    <section className="hero" ref={heroRef} style={{ '--mouse-x': '0px', '--mouse-y': '0px' }}>
       <div className="container">
         <div className="hero-badge">Premium Marketplace</div>
         <h1 className="hero-title">

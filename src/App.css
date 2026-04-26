@@ -2,4 +2,57 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.app-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  animation: pageFadeIn 0.5s var(--ease-smooth);
+}
+
+/* Page transition animation */
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom cursor system */
+* {
+  cursor: default;
+}
+
+a, button, .category-card, .item-card, .filter-btn, .nav a {
+  cursor: pointer;
+}
+
+/* Focus states for accessibility */
+:focus-visible {
+  outline: 2px solid var(--neon-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(0, 212, 255, 0.3);
+  color: var(--text-primary);
 }

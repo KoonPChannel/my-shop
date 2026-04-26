@@ -1,16 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './Products.css';
-
-const products = [
-  { id: 1, name: 'Dominus Empyreus',   game: 'Roblox',   price: '฿45,000', oldPrice: '฿52,000', icon: '🔮', tag: 'Limited', cat: 'item' },
-  { id: 2, name: 'Roblox Account Lvl 100+', game: 'Roblox', price: '฿3,200',  oldPrice: '฿4,500',  icon: '👤', tag: 'Account', cat: 'account' },
-  { id: 3, name: '10,000 Robux Pack',       game: 'Roblox', price: '฿800',    oldPrice: '฿1,200',  icon: '💎', tag: 'Top-up', cat: 'topup' },
-  { id: 4, name: 'Sparkle Time Fedora',      game: 'Roblox', price: '฿12,000', oldPrice: '฿15,000', icon: '🎩', tag: 'Limited', cat: 'item' },
-  { id: 5, name: 'Slender Avatar Set',       game: 'Roblox', price: '฿2,500',  oldPrice: '฿3,200',  icon: '✨', tag: 'Bundle',  cat: 'item' },
-  { id: 6, name: 'Gaming Account Bundle',    game: 'Multi',   price: '฿8,900',  oldPrice: '฿11,000', icon: '🎮', tag: 'Bundle',  cat: 'account' },
-  { id: 7, name: '5,000 Robux Pack',         game: 'Roblox', price: '฿450',    oldPrice: '฿600',    icon: '💎', tag: 'Top-up', cat: 'topup' },
-  { id: 8, name: 'Classic Domino Crown',     game: 'Roblox', price: '฿28,000', oldPrice: '฿32,000', icon: '👑', tag: 'Limited', cat: 'item' },
-];
 
 const filters = [
   { key: 'all',      label: 'ทั้งหมด' },
@@ -20,9 +10,27 @@ const filters = [
 ];
 
 function Products() {
+  const [products, setProducts] = useState([]);
   const [active, setActive] = useState('all');
+  const [loading, setLoading] = useState(true);
 
-  const filtered = active === 'all' ? products : products.filter(p => p.cat === active);
+  useEffect(() => {
+    fetch('http://localhost:4000/products')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Loaded products:', data);
+        setProducts(data || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load products:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = active === 'all' ? products : products.filter(p => p.category === active);
+
+  if (loading) return <p className="loading">Loading products...</p>;
 
   return (
     <section className="products" id="products">
@@ -45,25 +53,33 @@ function Products() {
           ))}
         </div>
 
-        <div className="items-grid">
-          {filtered.map(item => (
-            <div className="item-card" key={item.id}>
-              <div className="item-image">
-                <span className="item-emoji">{item.icon}</span>
-                <span className={`item-tag ${item.tag === 'Limited' ? 'hot' : ''}`}>{item.tag}</span>
-              </div>
-              <div className="item-info">
-                <span className="item-game">{item.game}</span>
-                <h3 className="item-name">{item.name}</h3>
-                <div className="item-price">
-                  <span className="price-current">{item.price}</span>
-                  <span className="price-old">{item.oldPrice}</span>
+        {filtered.length === 0 ? (
+          <p className="no-products">No products found. Please add some from admin panel.</p>
+        ) : (
+          <div className="items-grid">
+            {filtered.map(item => (
+              <Link to={`/products/${item.id}`} className="item-card" key={item.id}>
+                <div className="item-image">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="item-img" />
+                  ) : (
+                    <span className="item-emoji">🎮</span>
+                  )}
+                  {item.tag && <span className={`item-tag ${item.tag === 'Limited' ? 'hot' : ''}`}>{item.tag}</span>}
                 </div>
-                <button className="btn-cart">เพิ่มลงตะกร้า</button>
-              </div>
-            </div>
-          ))}
-        </div>
+                <div className="item-info">
+                  <span className="item-game">{item.category || 'Item'}</span>
+                  <h3 className="item-name">{item.name}</h3>
+                  <div className="item-price">
+                    <span className="price-current">฿{Number(item.price).toLocaleString()}</span>
+                    {item.oldPrice && <span className="price-old">฿{Number(item.oldPrice).toLocaleString()}</span>}
+                  </div>
+                  <button className="btn-cart">เพิ่มลงตะกร้า</button>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
