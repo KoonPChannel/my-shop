@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 function Footer() {
@@ -28,6 +29,7 @@ function Footer() {
             <a href="#">Line: @gamevault</a>
             <a href="#">Discord: BIT SHOP</a>
             <a href="#">Email: support@gamevault.th</a>
+            <Link to="/admin/login" className="admin-login-btn">Admin</Link>
           </div>
         </div>
         <div className="footer-bottom">
