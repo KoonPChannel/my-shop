@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
@@ -11,7 +13,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dbFile = path.join(__dirname, 'db.json');
 
+import session from 'express-session';
+
 const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'superdevsecret123',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -172,6 +183,7 @@ app.get('/auth/discord/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).send('No code');
   try {
+    // Exchange code for access token
     const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -185,11 +197,15 @@ app.get('/auth/discord/callback', async (req, res) => {
     });
     const tokenData = await tokenRes.json();
     if (tokenData.error) return res.status(400).send(tokenData.error);
+
+    // Retrieve user profile from Discord
     const userRes = await fetch('https://discord.com/api/users/@me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const profile = await userRes.json();
     const { email, username, id: discordId } = profile;
+
+    // Upsert user in our DB
     await db.read();
     let user = db.data.users.find(u => u.email === email);
     if (!user) {
@@ -204,8 +220,16 @@ app.get('/auth/discord/callback', async (req, res) => {
       db.data.users.push(user);
       await db.write();
     }
+
+    // Store user id in session
+    req.session.user = { id: user.id, username: user.username, email: user.email };
+
+    // Generate JWT for client side (optional, kept for compatibility)
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+
+    // Redirect to frontend (use env var for production URL)
+    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendBase}/login?token=${token}`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Discord auth error');
