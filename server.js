@@ -174,13 +174,20 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // ---------- DISCORD OAUTH ----------
+const crypto = require('crypto');
+
 app.get('/auth/discord', (req, res) => {
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
+  const state = crypto.randomBytes(16).toString('hex');
+  req.session.oauthState = state;
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email&state=${state}`;
   res.redirect(url);
 });
 
 app.get('/auth/discord/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+  if (!code || !state || state !== req.session.oauthState) {
+    return res.status(400).send('Invalid OAuth state');
+  }
   if (!code) return res.status(400).send('No code');
   try {
     // Exchange code for access token
