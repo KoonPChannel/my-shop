@@ -4,9 +4,11 @@ import path from 'path';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import { v4 as uuid } from 'uuid';
+import { fileURLToPath } from 'url';
 
-const __dirname = path.resolve();
-const file = path.join(__dirname, 'db.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const file = path.join(__dirname, '..', 'db.json');
 const adapter = new JSONFile(file);
 const defaultData = { users: [], products: [], topups: [], orders: [], admins: [] };
 const db = new Low(adapter, defaultData);
@@ -14,7 +16,7 @@ const db = new Low(adapter, defaultData);
 await db.read();
 if (!db.data) db.data = defaultData;
 if (!db.data.products) db.data.products = [];
-await db.write();
+// No write on import to avoid ENOENT
 
 const router = express.Router();
 

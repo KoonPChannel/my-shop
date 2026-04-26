@@ -174,7 +174,7 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // ---------- DISCORD OAUTH ----------
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 app.get('/auth/discord', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');

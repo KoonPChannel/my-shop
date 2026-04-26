@@ -3,5 +3,12 @@
   "products": [],
   "topups": [],
   "orders": [],
-  "admins": []
+  "admins": [
+    {
+      "id": "1777203479006",
+      "username": "admin",
+      "passwordHash": "$2b$10$SNBnDlzHQYT2YaWcYVejPOgrFYkZVo2pk2t1/DgU7Uzk8b2voLpem",
+      "createdAt": "2026-04-26T11:37:59.006Z"
+    }
+  ]
 }
