@@ -1,5 +1,14 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": 1,
+      "username": "QuicklyzXD",
+      "email": "disbuy7@gmail.com",
+      "passwordHash": "$2b$10$6LHuS4T20qJSemluiB9vSeF0Cn2M8b9GG8aWNPKwuofnRHnnlH8YG",
+      "credit": 0,
+      "createdAt": "2026-04-26T11:58:30.306Z"
+    }
+  ],
   "products": [],
   "topups": [],
   "orders": [],
