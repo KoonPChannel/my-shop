@@ -155,11 +155,21 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, email: user.email, credit: user.credit } });
 });
 
-// ---------- Hard‑coded admin for Vercel ----------
+// ---------- ADMIN LOGIN ENDPOINT ----------
+app.post('/admin/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
+  // Hard‑coded admin check (plain text) for Vercel serverless
+  if (username === 'admin' && password === 'admin123') {
+    const token = jwt.sign({ id: 1, username: 'admin', role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+    return res.json({ token, admin: { id: 1, username: 'admin' } });
+  }
+  return res.status(401).json({ error: 'Invalid credentials' });
+});
+
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123'; // plain text for Vercel (demo only)
-
 
 // Get current user info + credit
 app.get('/auth/me', authMiddleware, async (req, res) => {
@@ -339,7 +349,6 @@ app.delete('/orders/:id', authMiddleware, async (req, res) => {
   res.status(204).end();
 });
 
-import adminAuth from './server/adminAuth.js';
 import adminProducts from './server/adminProducts.js';
 // requireAdmin removed - admin routes are now open
 import fs from 'fs';
