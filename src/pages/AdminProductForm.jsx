@@ -17,7 +17,7 @@ function AdminProductForm() {
   useEffect(() => {
     if (!isEdit) return;
 
-    fetch('http://localhost:4000/admin/products', { credentials: 'include' })
+    fetch(`${process.env.REACT_APP_API_URL || 'https://my-shop-zeta-five.vercel.app'}/admin/products`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const product = data.find(p => p.id === id);
@@ -43,7 +43,7 @@ function AdminProductForm() {
     e.preventDefault();
     setError('');
 
-    const base = 'http://localhost:4000';
+    const base = process.env.REACT_APP_API_URL || 'https://my-shop-zeta-five.vercel.app';
     const url = isEdit
       ? `${base}/admin/products/${id}`
       : `${base}/admin/products`;
