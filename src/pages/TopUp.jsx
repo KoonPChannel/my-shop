@@ -54,7 +54,8 @@ function TopUp() {
   const simulatePayment = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:4000/topups', {
+      const base = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${base}/topups`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });

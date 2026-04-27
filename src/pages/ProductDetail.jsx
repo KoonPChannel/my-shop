@@ -12,7 +12,8 @@ function ProductDetail() {
   const { addToCart } = useCart();
 
   useEffect(() => {
-    fetch(`http://localhost:4000/products/${id}`)
+    const base = import.meta.env.VITE_API_URL || '';
+    fetch(`${base}/products/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) navigate('/products');
