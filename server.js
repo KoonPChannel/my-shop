@@ -81,6 +81,12 @@ if (!isVercel) {
           createdAt: new Date().toISOString()
         }
       ],
+      admins: [{
+        id: 1,
+        username: 'admin',
+        passwordHash: '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu',
+        role: 'admin'
+      }],
       products: [],
       topups: [],
       orders: []
