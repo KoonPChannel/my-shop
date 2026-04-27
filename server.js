@@ -139,26 +139,22 @@ app.post('/auth/register', async (req, res) => {
 // ---------- Hard‑coded admin for Vercel ----------
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_USERNAME = 'admin';
-// bcrypt hash of 'admin123' (cost 10)
-const ADMIN_HASH = '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu';
+const ADMIN_PASSWORD = 'admin123'; // plain text for Vercel (demo only)
 
 // Login (hard‑coded admin only, no DB needed)
-app.post('/admin/auth/login', async (req, res) => {
+app.post('/admin/auth/login', (req, res) => {
   const { email, username, password } = req.body;
   const loginField = email || username;
   if (!loginField || !password) {
     return res.status(400).json({ error: 'Missing fields' });
   }
-  // Check hard‑coded admin (match by email OR username)
-  if (loginField === ADMIN_EMAIL || loginField === ADMIN_USERNAME) {
-    const match = await bcrypt.compare(password, ADMIN_HASH);
-    if (match) {
-      const token = jwt.sign({ id: 1, username: ADMIN_USERNAME }, JWT_SECRET, { expiresIn: '7d' });
-      return res.json({
-        token,
-        user: { id: 1, username: ADMIN_USERNAME, email: ADMIN_EMAIL, credit: 0 }
-      });
-    }
+  // Check hard‑coded admin (match by email OR username, plain text password)
+  if ((loginField === ADMIN_EMAIL || loginField === ADMIN_USERNAME) && password === ADMIN_PASSWORD) {
+    const token = jwt.sign({ id: 1, username: ADMIN_USERNAME }, JWT_SECRET, { expiresIn: '7d' });
+    return res.json({
+      token,
+      user: { id: 1, username: ADMIN_USERNAME, email: ADMIN_EMAIL, credit: 0 }
+    });
   }
   return res.status(401).json({ error: 'Invalid credentials' });
 });
