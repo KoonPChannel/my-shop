@@ -15,6 +15,7 @@
     }
   ],
   "routes": [
+    { "src": "/admin/?.*", "dest": "/server.js" },
     { "src": "/admin/?.*", "dest": "/dist/index.html" },
     { "src": "/login/?.*", "dest": "/dist/index.html" },
     { "src": "/products/?.*", "dest": "/dist/index.html" },
