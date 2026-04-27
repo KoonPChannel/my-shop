@@ -53,19 +53,42 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:4000/auth/discord/callback';
 
-// Initialize lowdb
-const adapter = new JSONFile(dbFile);
-const defaultData = { users: [], products: [], topups: [], orders: [] };
-const db = new Low(adapter, defaultData);
-
-await db.read();
-if (!db.data) db.data = defaultData;
-// Ensure all required arrays exist
-if (!db.data.users) db.data.users = [];
-if (!db.data.products) db.data.products = [];
-if (!db.data.topups) db.data.topups = [];
-if (!db.data.orders) db.data.orders = [];
-await db.write();
+// Initialize lowdb (skip in Vercel serverless)
+let db;
+const isVercel = process.env.VERCEL === '1';
+if (!isVercel) {
+  const adapter = new JSONFile(dbFile);
+  const defaultData = { users: [], products: [], topups: [], orders: [] };
+  db = new Low(adapter, defaultData);
+  await db.read();
+  if (!db.data) db.data = defaultData;
+  if (!db.data.users) db.data.users = [];
+  if (!db.data.products) db.data.products = [];
+  if (!db.data.topups) db.data.topups = [];
+  if (!db.data.orders) db.data.orders = [];
+  await db.write();
+} else {
+  // In Vercel: use in-memory data
+  db = {
+    data: {
+      users: [
+        {
+          id: 1,
+          username: 'admin',
+          email: 'admin@example.com',
+          passwordHash: '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu',
+          credit: 0,
+          createdAt: new Date().toISOString()
+        }
+      ],
+      products: [],
+      topups: [],
+      orders: []
+    },
+    read: async () => {},
+    write: async () => {}
+  };
+}
 
 // Helper: generate next ID
 const nextId = (arr) => (arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1);
@@ -113,12 +136,27 @@ app.post('/auth/register', async (req, res) => {
   res.status(201).json({ token, user: { id: newUser.id, username: newUser.username, email: newUser.email, credit: 0 } });
 });
 
-// Login
-app.post('/auth/login', async (req, res) => {
+// ---------- Hard‑coded admin for Vercel ----------
+const ADMIN_EMAIL = 'admin@example.com';
+const ADMIN_HASH = '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu'; // bcrypt hash of 'admin123'
+
+// Login (hard‑coded admin)
+app.post('/admin/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Missing fields' });
   }
+  if (email === ADMIN_EMAIL) {
+    const match = await bcrypt.compare(password, ADMIN_HASH);
+    if (match) {
+      const token = jwt.sign({ id: 1, username: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+      return res.json({
+        token,
+        user: { id: 1, username: 'admin', email: ADMIN_EMAIL, credit: 0 }
+      });
+    }
+  }
+  // fallback to db (local)
   await db.read();
   const user = db.data.users.find(u => u.email === email);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
