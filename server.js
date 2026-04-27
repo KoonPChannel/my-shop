@@ -141,23 +141,6 @@ const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123'; // plain text for Vercel (demo only)
 
-// Login (hard‑coded admin only, no DB needed)
-app.post('/admin/auth/login', (req, res) => {
-  const { email, username, password } = req.body;
-  const loginField = email || username;
-  if (!loginField || !password) {
-    return res.status(400).json({ error: 'Missing fields' });
-  }
-  // Check hard‑coded admin (match by email OR username, plain text password)
-  if ((loginField === ADMIN_EMAIL || loginField === ADMIN_USERNAME) && password === ADMIN_PASSWORD) {
-    const token = jwt.sign({ id: 1, username: ADMIN_USERNAME }, JWT_SECRET, { expiresIn: '7d' });
-    return res.json({
-      token,
-      user: { id: 1, username: ADMIN_USERNAME, email: ADMIN_EMAIL, credit: 0 }
-    });
-  }
-  return res.status(401).json({ error: 'Invalid credentials' });
-});
 
 // Get current user info + credit
 app.get('/auth/me', authMiddleware, async (req, res) => {
