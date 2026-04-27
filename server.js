@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbFile = path.join(__dirname, 'db.json');
+const dbFile = path.join(__dirname, '..', 'db.json');
 
 import session from 'express-session';
 
@@ -23,19 +23,34 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use((req, res, next) => {
+  // File upload validation middleware
+  if (req.method === 'POST' && req.path === '/uploads') {
+    if (req.files && req.files.file) {
+      const file = req.files.file;
+      if (!file.mimetype.match(/^image\/(jpeg|png|gif|webp)$/)) {
+        return res.status(400).send('Invalid file type');
+      }
+      if (file.size > process.env.MAX_FILE_SIZE * 1024) {
+        return res.status(400).send('File too large');
+      }
+    }
+  }
+  next();
+});
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // JWT secret (use env var in production)
 const JWT_SECRET = process.env.JWT_SECRET || 'superdevsecret123';
 
 // OAuth credentials (set in production)
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'your-google-client-id';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret';
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/auth/google/callback';
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || 'your-discord-client-id';
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || 'your-discord-client-secret';
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:4000/auth/discord/callback';
 
 // Initialize lowdb
@@ -123,55 +138,6 @@ app.get('/auth/me', authMiddleware, async (req, res) => {
   res.json({ id: user.id, username: user.username, email: user.email, credit: user.credit });
 });
 
-// ---------- GOOGLE OAUTH ----------
-app.get('/auth/google', (req, res) => {
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=profile%20email`;
-  res.redirect(url);
-});
-
-app.get('/auth/google/callback', async (req, res) => {
-  const { code } = req.query;
-  if (!code) return res.status(400).send('No code');
-  try {
-    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
-        grant_type: 'authorization_code',
-      }),
-    });
-    const tokenData = await tokenRes.json();
-    if (tokenData.error) return res.status(400).send(tokenData.error);
-    const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const profile = await userRes.json();
-    const { email, name, id: googleId } = profile;
-    await db.read();
-    let user = db.data.users.find(u => u.email === email);
-    if (!user) {
-      user = {
-        id: nextId(db.data.users),
-        username: name || email.split('@')[0],
-        email,
-        googleId,
-        credit: 0,
-        createdAt: new Date().toISOString(),
-      };
-      db.data.users.push(user);
-      await db.write();
-    }
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
-    res.redirect(`http://localhost:5173/login?token=${token}`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Google auth error');
-  }
-});
 
 // ---------- DISCORD OAUTH ----------
 import crypto from 'crypto';
@@ -251,32 +217,6 @@ app.get('/me/credit', authMiddleware, async (req, res) => {
   res.json({ credit: user.credit });
 });
 
-// ---------- PRODUCTS ----------
-app.get('/products', async (req, res) => {
-  await db.read();
-  res.json(db.data.products);
-});
-
-app.get('/products/:id', async (req, res) => {
-  await db.read();
-  const item = db.data.products.find(p => p.id === Number(req.params.id));
-  item ? res.json(item) : res.status(404).json({ error: 'Not found' });
-});
-
-app.post('/products', authMiddleware, async (req, res) => {
-  await db.read();
-  const newItem = { id: nextId(db.data.products), ...req.body };
-  db.data.products.push(newItem);
-  await db.write();
-  res.status(201).json(newItem);
-});
-
-app.delete('/products/:id', authMiddleware, async (req, res) => {
-  await db.read();
-  db.data.products = db.data.products.filter(p => p.id !== Number(req.params.id));
-  await db.write();
-  res.status(204).end();
-});
 
 // ---------- TOPUPS ----------
 // Protected: user must be logged in
@@ -309,7 +249,7 @@ app.post('/topups', authMiddleware, async (req, res) => {
   res.status(201).json({ topup: newTopup, credit: user.credit });
 });
 
-app.get('/topups', authMiddleware, async (req, res) => {
+app.get('/topups', async (req, res) => {
   await db.read();
   const userTopups = db.data.topups.filter(t => t.userId === req.user.id);
   res.json(userTopups);
@@ -370,7 +310,7 @@ app.delete('/orders/:id', authMiddleware, async (req, res) => {
 
 import adminAuth from './server/adminAuth.js';
 import adminProducts from './server/adminProducts.js';
-import { requireAdmin } from './server/middleware/requireAdmin.js';
+// requireAdmin removed - admin routes are now open
 import fs from 'fs';
 
 // ---------- Public Product API ----------
@@ -391,12 +331,13 @@ const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
-// Admin routes
+// Admin routes – open (no auth middleware)
+// NOTE: This is an insecure demo setup; anyone can manage products.
 app.use('/admin/auth', adminAuth);
-app.use('/admin', requireAdmin, adminProducts);
+app.use('/admin', adminProducts);
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 BIT SHOP API running at http://localhost:${PORT}`);
 });

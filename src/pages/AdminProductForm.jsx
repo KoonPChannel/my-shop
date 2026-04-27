@@ -16,12 +16,8 @@ function AdminProductForm() {
   // Load existing product if editing
   useEffect(() => {
     if (!isEdit) return;
-    const token = localStorage.getItem('adminToken');
-    if (!token) { navigate('/admin/login'); return; }
 
-    fetch(`http://localhost:4000/admin/products`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    fetch('http://localhost:4000/admin/products', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const product = data.find(p => p.id === id);
@@ -47,28 +43,35 @@ function AdminProductForm() {
     e.preventDefault();
     setError('');
 
-    const token = localStorage.getItem('adminToken');
-    if (!token) { navigate('/admin/login'); return; }
-
+    const base = 'http://localhost:4000';
     const url = isEdit
-      ? `http://localhost:4000/admin/products/${id}`
-      : 'http://localhost:4000/admin/products';
+      ? `${base}/admin/products/${id}`
+      : `${base}/admin/products`;
     const method = isEdit ? 'PUT' : 'POST';
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, val]) => formData.append(key, val));
     if (image) formData.append('image', image);
 
-    const res = await fetch(url, {
-      method,
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    });
+    const adminToken = localStorage.getItem('adminToken');
+    const headers = {};
+    if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
 
-    if (res.ok) navigate('/admin/products');
-    else {
-      const data = await res.json();
-      setError(data.error || 'Save failed');
+    try {
+      const res = await fetch(url, {
+        method,
+        body: formData,
+        headers,
+        credentials: 'include'
+      });
+
+      if (res.ok) navigate('/admin/products');
+      else {
+        const data = await res.json();
+        setError(data.error || 'Save failed');
+      }
+    } catch (err) {
+      setError('Network error: ' + err.message);
     }
   };
 
@@ -121,5 +124,4 @@ function AdminProductForm() {
     </div>
   );
 }
-
 export default AdminProductForm;

@@ -1,0 +1,159 @@
+/* ====== Custom enhancements for BIT SHOP ====== */
+
+/* --- Body & general --- */
+body {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #e0e0e0;
+  min-height: 100vh;
+  font-family: 'Kanit', sans-serif;
+}
+
+/* --- Navbar gradient --- */
+.navbar-dark.bg-primary {
+  background: linear-gradient(90deg, #1a1a2e, #16213e, #0f3460) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* --- Logo --- */
+.logo-img {
+  filter: drop-shadow(0 0 6px rgba(0,255,255,0.6));
+  transition: transform 0.3s ease;
+}
+.logo-img:hover {
+  transform: scale(1.05);
+}
+
+/* --- Nav links --- */
+.nav-link {
+  position: relative;
+  transition: color 0.3s;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 0;
+  height: 2px;
+  background: #00ffff;
+  transition: width 0.3s;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 80%;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: #00ffff !important;
+}
+
+/* --- Admin button --- */
+.admin-login-btn,
+.btn-outline-light {
+  border-color: #00ffff !important;
+  color: #00ffff !important;
+  transition: all 0.3s;
+}
+.admin-login-btn:hover,
+.btn-outline-light:hover {
+  background: #00ffff !important;
+  color: #1a1a2e !important;
+  box-shadow: 0 0 8px rgba(0,255,255,0.6);
+}
+
+/* --- Cards (products, etc.) --- */
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,255,255,0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 20px rgba(0,255,255,0.3);
+}
+.card-img-top {
+  transition: transform 0.5s;
+}
+.card:hover .card-img-top {
+  transform: scale(1.05);
+}
+.card-title {
+  color: #00ffff;
+}
+
+/* --- Buttons primary --- */
+.btn-primary {
+  background: linear-gradient(45deg, #0f3460, #533483);
+  border: none;
+  box-shadow: 0 4px 12px rgba(83,52,131,0.4);
+  transition: all 0.3s;
+}
+.btn-primary:hover {
+  background: linear-gradient(45deg, #533483, #0f3460);
+  box-shadow: 0 6px 16px rgba(83,52,131,0.6);
+  transform: translateY(-2px);
+}
+
+/* --- Forms --- */
+.form-control {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(0,255,255,0.3);
+  color: #e0e0e0;
+}
+.form-control:focus {
+  background: rgba(255,255,255,0.15);
+  border-color: #00ffff;
+  box-shadow: 0 0 0 0.2rem rgba(0,255,255,0.25);
+  color: #fff;
+}
+.form-label {
+  color: #00ffff;
+}
+
+/* --- Footer --- */
+footer.bg-dark {
+  background: linear-gradient(90deg, #1a1a2e, #16213e) !important;
+  border-top: 1px solid rgba(0,255,255,0.2);
+}
+footer a.text-light:hover {
+  color: #00ffff !important;
+  text-decoration: none;
+}
+
+/* --- Alerts --- */
+.alert {
+  border-radius: 8px;
+}
+
+/* --- Tables (admin) --- */
+.table {
+  color: #e0e0e0;
+}
+.table thead th {
+  border-bottom: 2px solid #00ffff;
+  color: #00ffff;
+}
+
+/* --- Badge --- */
+.badge.bg-primary {
+  background: linear-gradient(45deg, #0f3460, #533483) !important;
+}
+
+/* --- Smooth scroll --- */
+html {
+  scroll-behavior: smooth;
+}
+
+/* --- Neon glow for important text --- */
+.neon-text {
+  color: #00ffff;
+  text-shadow: 0 0 8px rgba(0,255,255,0.8);
+}
+
+/* --- Loading spinner override --- */
+.spinner-border.text-primary {
+  border-color: #00ffff;
+  border-right-color: transparent;
+}

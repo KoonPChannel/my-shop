@@ -4,55 +4,49 @@ import bcrypt from 'bcryptjs';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const file = path.join(__dirname, '..', 'db.json');
-const adapter = new JSONFile(file);
-const defaultData = { users: [], products: [], topups: [], orders: [], admins: [] };
-const db = new Low(adapter, defaultData);
-
-await db.read();
-if (!db.data) db.data = defaultData;
-if (!db.data.admins) db.data.admins = [];
-if (!db.data.products) db.data.products = [];
-await db.write();
+const dbFile = path.join(__dirname, '..', 'db.json');
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'superdevsecret123';
 
 // Admin login
-router.post('/login', async (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  const admin = db.data.admins.find(a => a.username === username);
-  if (!admin) return res.json({ error: 'Invalid credentials' });
-
-  const valid = await bcrypt.compare(password, admin.passwordHash);
-  if (!valid) return res.json({ error: 'Invalid credentials' });
-
-  const token = jwt.sign(
-    { id: admin.id, username: admin.username, role: 'admin' },
-    'superdevsecret123',
-    { expiresIn: '8h' }
-  );
-  res.json({ token });
-});
-
-// Create first admin (one-time setup)
-router.post('/setup', async (req, res) => {
-  if (db.data.admins.length > 0) return res.json({ error: 'Admin already exists' });
-
-  const { username, password } = req.body;
-  const passwordHash = await bcrypt.hash(password, 10);
-  const admin = {
-    id: Date.now().toString(),
-    username,
-    passwordHash,
-    createdAt: new Date().toISOString()
-  };
+  if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
+  const adapter = new JSONFile(dbFile);
+  const db = new Low(adapter, { users: [], products: [], topups: [], orders: [], admins: [] });
+  await db.read();
+  db.data = db.data || { admins: [] };
+  if (db.data.admins?.find(a => a.username === username)) return res.status(409).json({ error: 'Admin exists' });
+  const hash = await bcrypt.hash(password, 10);
+  const admin = { id: uuidv4(), username, passwordHash: hash, role: 'admin' };
   db.data.admins.push(admin);
   await db.write();
-  res.json({ success: true });
+  const token = jwt.sign({ id: admin.id, role: 'admin' }, JWT_SECRET, { expiresIn: '2h' });
+  res.status(201).json({ token, admin: { id: admin.id, username } });
+});
+
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  const adapter = new JSONFile(dbFile);
+  const db = new Low(adapter, { users: [], products: [], topups: [], orders: [], admins: [] });
+  await db.read();
+  if (!db.data) db.data = { admins: [] };
+  
+  const admin = db.data.admins?.find(a => a.username === username);
+  if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+  
+  const match = await bcrypt.compare(password, admin.passwordHash);
+  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  
+  const token = jwt.sign({ id: admin.id, role: 'admin' }, JWT_SECRET, { expiresIn: '2h' });
+  res.json({ token });
 });
 
 export default router;

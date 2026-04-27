@@ -15,7 +15,7 @@ function Products() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:4000/products')
+    fetch('/products')
       .then(res => res.json())
       .then(data => {
         console.log('Loaded products:', data);

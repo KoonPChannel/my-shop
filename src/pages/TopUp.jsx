@@ -54,7 +54,7 @@ function TopUp() {
   const simulatePayment = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:4000/dev/add-credit', {
+      const res = await fetch('http://localhost:4000/topups', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -1,33 +1,28 @@
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-import { v4 as uuid } from 'uuid';
+import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const file = path.join(__dirname, '..', 'db.json');
-const adapter = new JSONFile(file);
-const defaultData = { users: [], products: [], topups: [], orders: [], admins: [] };
-const db = new Low(adapter, defaultData);
-
-await db.read();
-if (!db.data) db.data = defaultData;
-if (!db.data.products) db.data.products = [];
-// No write on import to avoid ENOENT
+const dbFile = path.join(__dirname, '..', 'db.json');
 
 const router = express.Router();
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'public', 'uploads'));
+    const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `product-${Date.now()}${ext}`);
+    cb(null, `product-${uuidv4()}${ext}`);
   }
 });
 
@@ -35,80 +30,117 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images allowed'));
-    }
+    const allowed = /jpeg|jpg|png|gif|webp/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    if (ext && mime) cb(null, true);
+    else cb(new Error('Only image files are allowed'));
   }
 });
 
-// GET all products (admin view)
-router.get('/products', async (req, res) => {
+// Helper to get db instance
+async function getDb() {
+  const adapter = new JSONFile(dbFile);
+  const db = new Low(adapter, { users: [], products: [], topups: [], orders: [] });
   await db.read();
-  res.json(db.data.products || []);
-});
-
-// POST create product
-router.post('/products', upload.single('image'), async (req, res) => {
-  await db.read();
-  const { name, price, oldPrice, category, description, stock } = req.body;
-
-  const product = {
-    id: uuid() || Date.now().toString(),
-    name,
-    price: Number(price),
-    oldPrice: oldPrice ? Number(oldPrice) : null,
-    category: category || 'general',
-    description: description || '',
-    stock: Number(stock) || 0,
-    image: req.file ? `/uploads/${req.file.filename}` : null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-
+  if (!db.data) db.data = { users: [], products: [], topups: [], orders: [] };
   if (!db.data.products) db.data.products = [];
-  db.data.products.push(product);
-  await db.write();
-  res.json({ success: true, product });
-});
+  return db;
+}
 
-// PUT update product
-router.put('/products/:id', upload.single('image'), async (req, res) => {
-  await db.read();
-  const { id } = req.params;
-  const { name, price, oldPrice, category, description, stock } = req.body;
-
-  const product = db.data.products?.find(p => p.id === id);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-
-  Object.assign(product, {
-    name: name || product.name,
-    price: price ? Number(price) : product.price,
-    oldPrice: oldPrice ? Number(oldPrice) : product.oldPrice,
-    category: category || product.category,
-    description: description || product.description,
-    stock: stock ? Number(stock) : product.stock,
-    updatedAt: new Date().toISOString()
-  });
-
-  if (req.file) {
-    product.image = `/uploads/${req.file.filename}`;
+// GET all products (admin) - protected by requireAdmin in server.js
+router.get('/products', async (req, res) => {
+  try {
+    const db = await getDb();
+    res.json(db.data.products || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
-
-  await db.write();
-  res.json({ success: true, product });
 });
 
-// DELETE product
-router.delete('/products/:id', async (req, res) => {
-  await db.read();
-  const { id } = req.params;
+// POST create product - protected by requireAdmin in server.js
+router.post('/products', upload.single('image'), async (req, res) => {
+  try {
+    const { name, price, oldPrice, category, description, stock, game } = req.body;
 
-  db.data.products = db.data.products?.filter(p => p.id !== id) || [];
-  await db.write();
-  res.json({ success: true });
+    if (!name || !price) {
+      return res.status(400).json({ error: 'Name and price are required' });
+    }
+    if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+      return res.status(400).json({ error: 'Price must be a positive number' });
+    }
+
+    const db = await getDb();
+
+    const product = {
+      id: uuidv4(),
+      name,
+      price: parseFloat(price),
+      oldPrice: oldPrice ? parseFloat(oldPrice) : null,
+      category: category || 'uncategorized',
+      game: game || 'Roblox',
+      description: description || '',
+      stock: parseInt(stock) || 0,
+      image: req.file ? `/uploads/${req.file.filename}` : null,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: null
+    };
+
+    db.data.products.push(product);
+    await db.write();
+
+    res.status(201).json({ product, message: 'Product created successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+// PUT update product - protected by requireAdmin in server.js
+router.put('/products/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, oldPrice, category, description, stock } = req.body;
+
+    const db = await getDb();
+    const idx = db.data.products.findIndex(p => p.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
+
+    const product = db.data.products[idx];
+    if (name) product.name = name;
+    if (price) product.price = parseFloat(price);
+    if (oldPrice !== undefined) product.oldPrice = oldPrice ? parseFloat(oldPrice) : null;
+    if (category) product.category = category;
+    if (description !== undefined) product.description = description;
+    if (stock !== undefined) product.stock = parseInt(stock);
+    if (req.file) product.image = `/uploads/${req.file.filename}`;
+
+    await db.write();
+    res.json({ product, message: 'Product updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+// DELETE product - protected by requireAdmin in server.js
+router.delete('/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const db = await getDb();
+    const idx = db.data.products.findIndex(p => p.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
+
+    db.data.products.splice(idx, 1);
+    await db.write();
+
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
 });
 
 export default router;
