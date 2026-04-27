@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbFile = path.join(__dirname, '..', 'db.json');
+const dbFile = path.resolve('db.json');
 
 import session from 'express-session';
 
