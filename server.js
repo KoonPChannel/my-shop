@@ -51,7 +51,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'superdevsecret123';
 // OAuth credentials (set in production)
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:4000/auth/discord/callback';
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://my-shop-zeta-five.vercel.app/auth/discord/callback';
 
 // Initialize lowdb (skip in Vercel serverless)
 let db;
