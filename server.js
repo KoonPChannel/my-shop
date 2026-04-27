@@ -136,6 +136,19 @@ app.post('/auth/register', async (req, res) => {
   res.status(201).json({ token, user: { id: newUser.id, username: newUser.username, email: newUser.email, credit: 0 } });
 });
 
+// ---------- USER LOGIN ----------
+app.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Missing fields' });
+  await db.read();
+  const user = db.data.users.find(u => u.email === email);
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  const match = await bcrypt.compare(password, user.passwordHash);
+  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+  const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email, credit: user.credit } });
+});
+
 // ---------- Hard‑coded admin for Vercel ----------
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_USERNAME = 'admin';
@@ -345,8 +358,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Admin routes – open (no auth middleware)
 // NOTE: This is an insecure demo setup; anyone can manage products.
-app.use('/admin/auth', adminAuth);
-app.use('/admin', adminProducts);
+app.use('/admin/auth', adminAuth(db));
+app.use('/admin', adminProducts(db));
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 4000;
