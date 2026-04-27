@@ -24,7 +24,7 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN || 'https://my-shop-zeta-five.vercel.app',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

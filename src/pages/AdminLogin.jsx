@@ -12,7 +12,7 @@ function AdminLogin() {
     e.preventDefault();
     setError('');
 
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
     const res = await fetch(`${base}/admin/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -11,7 +11,8 @@ function AdminProducts() {
     const token = localStorage.getItem('adminToken');
     if (!token) { navigate('/admin/login'); return; }
 
-    const res = await fetch('http://localhost:4000/admin/products', {
+    const base = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${base}/admin/products`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -24,7 +25,8 @@ function AdminProducts() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     const token = localStorage.getItem('adminToken');
-    await fetch(`http://localhost:4000/admin/products/${id}`, {
+    const base = import.meta.env.VITE_API_URL || '';
+    await fetch(`${base}/admin/products/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     });
