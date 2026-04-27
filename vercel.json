@@ -1,7 +1,22 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
+      }
+    },
+    {
+      "src": "server.mjs",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["db.json", "server/**"]
+      }
+    }
+  ],
   "routes": [
     { "src": "/admin/?.*", "dest": "/server.mjs" },
     { "src": "/auth/?.*", "dest": "/server.mjs" },
