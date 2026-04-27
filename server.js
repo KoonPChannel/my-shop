@@ -142,11 +142,12 @@ const ADMIN_HASH = '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu';
 
 // Login (hard‑coded admin)
 app.post('/admin/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email, username, password } = req.body;
+  const loginField = email || username;
+  if (!loginField || !password) {
     return res.status(400).json({ error: 'Missing fields' });
   }
-  if (email === ADMIN_EMAIL) {
+  if (loginField === ADMIN_EMAIL) {
     const match = await bcrypt.compare(password, ADMIN_HASH);
     if (match) {
       const token = jwt.sign({ id: 1, username: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
@@ -158,7 +159,7 @@ app.post('/admin/auth/login', async (req, res) => {
   }
   // fallback to db (local)
   await db.read();
-  const user = db.data.users.find(u => u.email === email);
+  const user = db.data.users.find(u => u.email === loginField || u.username === loginField);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
   const match = await bcrypt.compare(password, user.passwordHash);
