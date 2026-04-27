@@ -8,6 +8,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import session from 'express-session';
+import crypto from 'crypto';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -115,6 +119,23 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
+// ---------- MIDDLEWARE: requireAdmin ----------
+const requireAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
 // ---------- AUTH ROUTES ----------
 // Register
 app.post('/auth/register', async (req, res) => {
@@ -165,6 +186,35 @@ app.post('/admin/auth/login', (req, res) => {
     return res.json({ token, admin: { id: 1, username: 'admin' } });
   }
   return res.status(401).json({ error: 'Invalid credentials' });
+});
+
+// ---------- ADMIN PRODUCT ROUTES ----------
+// Create product (admin only)
+app.post('/admin/products', requireAdmin, async (req, res) => {
+  const { name, price, stock, image, description, category, oldPrice } = req.body;
+  if (!name || price == null) return res.status(400).json({ error: 'Missing fields' });
+  await db.read();
+  if (!db.data.products) db.data.products = [];
+  const newProduct = {
+    id: nextId(db.data.products),
+    name,
+    price,
+    stock: stock || 0,
+    image: image || '',
+    description: description || '',
+    category: category || '',
+    oldPrice: oldPrice || null,
+    createdAt: new Date().toISOString()
+  };
+  db.data.products.push(newProduct);
+  await db.write();
+  res.status(201).json(newProduct);
+});
+
+// Get all products (admin only)
+app.get('/admin/products', requireAdmin, async (req, res) => {
+  await db.read();
+  res.json(db.data.products || []);
 });
 
 const ADMIN_EMAIL = 'admin@example.com';
@@ -349,10 +399,6 @@ app.delete('/orders/:id', authMiddleware, async (req, res) => {
   res.status(204).end();
 });
 
-import adminProducts from './server/adminProducts.js';
-// requireAdmin removed - admin routes are now open
-import fs from 'fs';
-
 // ---------- Public Product API ----------
 app.get('/products', async (req, res) => {
   await db.read();
@@ -366,15 +412,12 @@ app.get('/products/:id', async (req, res) => {
   res.json(product);
 });
 
-// Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-
-// Admin routes – open (no auth middleware)
-// NOTE: This is an insecure demo setup; anyone can manage products.
-app.use('/admin/auth', adminAuth(db));
-app.use('/admin', adminProducts(db));
+// Ensure uploads folder exists (skip in Vercel serverless)
+if (process.env.VERCEL !== '1') {
+  const uploadsDir = path.join(__dirname, 'public', 'uploads');
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+}
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 4000;
