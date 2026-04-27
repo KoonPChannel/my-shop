@@ -337,6 +337,11 @@ app.use('/admin/auth', adminAuth);
 app.use('/admin', adminProducts);
 
 // ---------- Start ----------
+const PORT = process.env.PORT || 4000;
 // Do not listen in Vercel serverless environment
-// app.listen is omitted; Vercel uses default export
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🚀 BIT SHOP API running at http://localhost:${PORT}`);
+  });
+}
 export default app;
