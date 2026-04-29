@@ -26,8 +26,26 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://my-shop-zeta-five.vercel.app',
+  origin: (origin, callback) => {
+    // For non-browser requests, `origin` can be undefined.
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow Vercel preview/staging domains by default.
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+
+    // Allow local dev.
+    if (origin.includes('localhost')) return callback(null, true);
+
+    return callback(new Error('Not allowed by CORS'), false);
+  },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
