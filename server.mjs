@@ -16,7 +16,7 @@ import adminProducts from './server/adminProducts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbFile = path.resolve('db.json');
+const bundledDbFile = path.resolve('db.json');
 
 const app = express();
 
@@ -75,47 +75,36 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://my-shop-zeta-five.vercel.app/auth/discord/callback';
 
-// Initialize lowdb (skip in Vercel serverless)
+// Initialize lowdb:
+// - Local: read/write `db.json` in project root
+// - Vercel serverless: read bundled `db.json`, then keep writes in `/tmp/db.json`
 let db;
 const isVercel = process.env.VERCEL === '1';
-if (!isVercel) {
-  const adapter = new JSONFile(dbFile);
-  const defaultData = { users: [], products: [], topups: [], orders: [] };
-  db = new Low(adapter, defaultData);
-  await db.read();
-  if (!db.data) db.data = defaultData;
-  if (!db.data.users) db.data.users = [];
-  if (!db.data.products) db.data.products = [];
-  if (!db.data.topups) db.data.topups = [];
-  if (!db.data.orders) db.data.orders = [];
+const runtimeDbFile = isVercel ? path.resolve('/tmp/db.json') : bundledDbFile;
+
+const defaultData = { users: [], products: [], topups: [], orders: [] };
+if (isVercel && !fs.existsSync(runtimeDbFile)) {
+  // Copy the bundled db.json into writable runtime storage.
+  try {
+    fs.mkdirSync(path.dirname(runtimeDbFile), { recursive: true });
+    if (fs.existsSync(bundledDbFile)) fs.copyFileSync(bundledDbFile, runtimeDbFile);
+  } catch (err) {
+    // If copy fails, we still boot with `defaultData`.
+  }
+}
+
+const adapter = new JSONFile(runtimeDbFile);
+db = new Low(adapter, defaultData);
+await db.read();
+if (!db.data) db.data = defaultData;
+if (!db.data.users) db.data.users = [];
+if (!db.data.products) db.data.products = [];
+if (!db.data.topups) db.data.topups = [];
+if (!db.data.orders) db.data.orders = [];
+try {
   await db.write();
-} else {
-  // In Vercel: use in-memory data
-  db = {
-    data: {
-      users: [
-        {
-          id: 1,
-          username: 'admin',
-          email: 'admin@example.com',
-          passwordHash: '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu',
-          credit: 0,
-          createdAt: new Date().toISOString()
-        }
-      ],
-      admins: [{
-        id: 1,
-        username: 'admin',
-        passwordHash: '$2a$10$7QGZeJtGwJCXXwN5u0sNUeUvYhGQeJzXZ/OWtFpR5dV5P5h5YCu',
-        role: 'admin'
-      }],
-      products: [],
-      topups: [],
-      orders: []
-    },
-    read: async () => {},
-    write: async () => {}
-  };
+} catch {
+  // Ignore write failures in environments where fs is restricted.
 }
 
 // Helper: generate next ID
