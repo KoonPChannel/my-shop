@@ -2,12 +2,33 @@ import express from 'express';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import fs from 'fs';
 
 export default function adminProducts(db) {
   const router = express.Router();
 
-  // Configure multer for image uploads (memory storage for Vercel)
-  const storage = multer.memoryStorage();
+  const isVercel = process.env.VERCEL === '1';
+  const uploadsDir = path.resolve('public/uploads');
+
+  // Configure multer for image uploads:
+  // - Local: diskStorage so we can serve via `server.mjs` static middleware
+  // - Vercel: memoryStorage (we currently don't persist files, so we avoid `/uploads/undefined`)
+  const storage = isVercel
+    ? multer.memoryStorage()
+    : multer.diskStorage({
+      destination: (req, file, cb) => {
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+        cb(null, uploadsDir);
+      },
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase() || '';
+        const base = path
+          .basename(file.originalname, ext)
+          .replace(/[^a-z0-9_-]/gi, '')
+          .slice(0, 50);
+        cb(null, `${Date.now()}-${base}${ext}`);
+      },
+    });
 
   const upload = multer({
     storage,
@@ -21,12 +42,24 @@ export default function adminProducts(db) {
     }
   });
 
+  const getImagePath = (file) => {
+    if (!file) return null;
+    // diskStorage sets `filename`, memoryStorage doesn't.
+    if (!file.filename) return null;
+    return `/uploads/${file.filename}`;
+  };
+
 // GET all products (admin) - protected by requireAdmin in server.js
 router.get('/products', async (req, res) => {
   try {
     // use shared db instance
     await db.read();
-    res.json(db.data.products || []);
+    const products = (db.data.products || []).map((p) => ({
+      ...p,
+      // Guard against historical bad values from memoryStorage (`/uploads/undefined`)
+      image: p.image === '/uploads/undefined' ? null : p.image,
+    }));
+    res.json(products);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -57,7 +90,7 @@ router.post('/products', upload.single('image'), async (req, res) => {
       game: game || 'Roblox',
       description: description || '',
       stock: parseInt(stock) || 0,
-      image: req.file ? `/uploads/${req.file.filename}` : null,
+      image: getImagePath(req.file),
       status: 'active',
       createdAt: new Date().toISOString(),
       updatedAt: null
@@ -91,7 +124,7 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
     if (category) product.category = category;
     if (description !== undefined) product.description = description;
     if (stock !== undefined) product.stock = parseInt(stock);
-    if (req.file) product.image = `/uploads/${req.file.filename}`;
+    if (req.file) product.image = getImagePath(req.file);
 
     await db.write();
     res.json({ product, message: 'Product updated successfully' });
