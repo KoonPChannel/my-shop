@@ -7,7 +7,6 @@ export default function adminAuth(db) {
   const router = express.Router();
   const JWT_SECRET = process.env.JWT_SECRET || 'superdevsecret123';
 
-  // Admin login (hard-coded for Vercel serverless)
   router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     await db.read();
@@ -20,7 +19,6 @@ export default function adminAuth(db) {
     res.json({ token });
   });
 
-  // Admin register
   router.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
@@ -37,5 +35,3 @@ export default function adminAuth(db) {
 
   return router;
 }
-
-export default router;

@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "serve:api": "node server.js",
-    "server": "node server.js"
+    "serve:api": "node server.mjs",
+    "server": "node server.mjs"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",

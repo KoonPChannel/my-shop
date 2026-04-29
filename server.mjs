@@ -231,8 +231,6 @@ app.get('/auth/me', authMiddleware, async (req, res) => {
 
 
 // ---------- DISCORD OAUTH ----------
-import crypto from 'crypto';
-
 app.get('/auth/discord', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
@@ -427,5 +425,6 @@ if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`🚀 BIT SHOP API running at http://localhost:${PORT}`);
   });
+}
 }
 export default app;

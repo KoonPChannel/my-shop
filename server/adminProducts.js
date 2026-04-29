@@ -2,13 +2,11 @@ import express from 'express';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import fs from 'fs';
 
 export default function adminProducts(db) {
   const router = express.Router();
 
   // Configure multer for image uploads (memory storage for Vercel)
-  const isVercel = process.env.VERCEL === '1';
   const storage = multer.memoryStorage();
 
   const upload = multer({
@@ -121,3 +119,6 @@ router.delete('/products/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete product' });
   }
 });
+
+  return router;
+}
