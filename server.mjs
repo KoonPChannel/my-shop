@@ -12,6 +12,7 @@ import session from 'express-session';
 import crypto from 'crypto';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import adminProducts from './server/adminProducts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -189,37 +190,9 @@ app.post('/admin/auth/login', (req, res) => {
 });
 
 // ---------- ADMIN PRODUCT ROUTES ----------
-// Create product (admin only)
-app.post('/admin/products', requireAdmin, async (req, res) => {
-  const { name, price, stock, image, description, category, oldPrice } = req.body;
-  if (!name || price == null) return res.status(400).json({ error: 'Missing fields' });
-  await db.read();
-  if (!db.data.products) db.data.products = [];
-  const newProduct = {
-    id: nextId(db.data.products),
-    name,
-    price,
-    stock: stock || 0,
-    image: image || '',
-    description: description || '',
-    category: category || '',
-    oldPrice: oldPrice || null,
-    createdAt: new Date().toISOString()
-  };
-  db.data.products.push(newProduct);
-  await db.write();
-  res.status(201).json(newProduct);
-});
-
-// Get all products (admin only)
-app.get('/admin/products', requireAdmin, async (req, res) => {
-  await db.read();
-  res.json(db.data.products || []);
-});
-
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin123'; // plain text for Vercel (demo only)
+// Use shared router with multer support (so FormData multipart works).
+// Note: mount after admin login so `/admin/auth/login` is not protected.
+app.use('/admin', requireAdmin, adminProducts(db));
 
 // Get current user info + credit
 app.get('/auth/me', authMiddleware, async (req, res) => {
